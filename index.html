@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SpaceAI</title>
+
+<style>
+/* RESET */
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: system-ui, Arial, sans-serif;
+    background: radial-gradient(circle at top, #0b1c3d, #030617);
+    color: white;
+    height: 100vh;
+    display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    background: rgba(10,15,40,0.9);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar h2 {
+    margin: 5px 0 15px;
+    font-size: 20px;
+}
+
+.new-chat {
+    background: linear-gradient(135deg,#3b82f6,#6366f1);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.chat-list {
+    margin-top: 20px;
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+/* MAIN */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+header {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.logout {
+    background: rgba(255,80,80,0.2);
+    border: none;
+    color: #ff6b6b;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* CHAT */
+#chatbox {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.msg {
+    max-width: 75%;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    line-height: 1.5;
+    animation: fadeUp 0.3s ease;
+}
+
+.user {
+    background: linear-gradient(135deg,#2563eb,#4f46e5);
+    margin-left: auto;
+}
+
+.ai {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(8px);
+}
+
+.typing {
+    opacity: 0.6;
+    font-style: italic;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* INPUT */
+.input-area {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 14px;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    outline: none;
+    font-size: 15px;
+}
+
+.send {
+    padding: 14px 20px;
+    background: linear-gradient(135deg,#3b82f6,#6366f1);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* MOBILE */
+@media (max-width: 800px) {
+    .sidebar { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>🚀 SpaceAI</h2>
+    <button class="new-chat" onclick="newChat()">＋ New Chat</button>
+    <div class="chat-list">Future chats will appear here</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <header>
+        <span id="username"></span>
+        <button class="logout" onclick="logout()">Logout</button>
+    </header>
+
+    <div id="chatbox">
+        <div class="msg ai">
+            🌌 Hello! I’m <b>SpaceAI</b>. Ask me anything about the universe… or anything at all.
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input id="userInput" placeholder="Message SpaceAI…">
+        <button class="send" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+/* 🔐 AUTH CHECK - Check session via API */
+async function checkAuth() {
+    try {
+        // For now, we'll check if there's a session cookie
+        // In a full implementation, you'd have an auth check endpoint
+        const response = await fetch('spaceai.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ question: '' })
+        });
+        
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            return false;
+        }
+        return true;
+    } catch (error) {
+        // If API is not available, fall back to localStorage check
+        if (localStorage.getItem("spaceai_logged_in") !== "true") {
+            window.location.href = "login.html";
+            return false;
+        }
+        return true;
+    }
+}
+
+// Check auth on page load
+checkAuth().then(authenticated => {
+    if (authenticated) {
+        // Get username from localStorage or session
+        const username = localStorage.getItem("spaceai_user") || "User";
+        document.getElementById("username").innerText = "👋 " + username;
+    }
+});
+
+/* LOGOUT */
+function logout() {
+    // Clear local storage
+    localStorage.removeItem("spaceai_logged_in");
+    localStorage.removeItem("spaceai_user");
+    
+    // Redirect to login (session will be cleared server-side on next request)
+    window.location.href = "login.html";
+}
+
+/* CHAT FUNCTIONS */
+function addMessage(text, type) {
+    const box = document.getElementById("chatbox");
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.innerHTML = text.replace(/\n/g, '<br>');
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) {
+        return; // Don't send empty messages
+    }
+
+    // Store the text before clearing input
+    const messageText = text;
+    
+    // Add user message
+    addMessage(messageText, "user");
+    input.value = "";
+    input.disabled = true;
+
+    // Show typing indicator
+    const typing = document.createElement("div");
+    typing.className = "msg ai typing";
+    typing.id = "typing-indicator";
+    typing.innerText = "SpaceAI is thinking...";
+    document.getElementById("chatbox").appendChild(typing);
+    document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight;
+
+    try {
+        // Call API with the stored message text
+        const response = await SpaceAIAPI.sendMessage(messageText);
+        
+        // Remove typing indicator
+        typing.remove();
+        
+        if (response.success && response.answer) {
+            addMessage(response.answer, "ai");
+        } else {
+            addMessage("⚠️ " + (response.answer || "Failed to get response"), "ai");
+        }
+    } catch (error) {
+        // Remove typing indicator
+        typing.remove();
+        
+        // Handle specific errors
+        if (error.message.includes("log in")) {
+            addMessage("⚠️ Session expired. Please log in again.", "ai");
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 2000);
+        } else if (error.message.includes("API key")) {
+            addMessage("⚠️ API key not configured. Please contact administrator.", "ai");
+        } else {
+            addMessage("⚠️ Error: " + error.message, "ai");
+        }
+    } finally {
+        input.disabled = false;
+        input.focus();
+    }
+}
+
+// Allow Enter key to send message
+document.getElementById("userInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+function newChat() {
+    if (confirm("Start a new chat? Current conversation will be cleared.")) {
+        document.getElementById("chatbox").innerHTML =
+            '<div class="msg ai">🌌 New chat started. Ask me anything!</div>';
+    }
+}
+</script>
+
+</body>
+</html>

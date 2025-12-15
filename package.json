@@ -1,0 +1,12 @@
+{
+  "name": "spaceai",
+  "version": "1.0.0",
+  "description": "SpaceAI Chat Application",
+  "scripts": {
+    "start": "./start-server.sh",
+    "dev": "./start-server.sh",
+    "php": "php -S localhost:3000",
+    "static": "npx http-server -p 3000 -o"
+  }
+}
+

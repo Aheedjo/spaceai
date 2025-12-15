@@ -1,0 +1,68 @@
+/* ====== GENERAL PAGE STYLE ====== */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #4c6ef5, #8c54ff);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ====== FORM CONTAINER ====== */
+.register-box {
+    background: white;
+    padding: 25px 30px;
+    width: 350px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+/* ====== TITLE ====== */
+.register-box h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* ====== INPUT FIELDS ====== */
+.register-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+}
+
+.register-box input:focus {
+    border-color: #4c6ef5;
+    box-shadow: 0 0 5px rgba(76,110,245,0.4);
+}
+
+/* ====== BUTTON ====== */
+.register-box button {
+    width: 100%;
+    padding: 12px;
+    background: #4c6ef5;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.register-box button:hover {
+    background: #3d57c3;
+}
+
+/* ====== SMALL TEXT ====== */
+.register-box p {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+}

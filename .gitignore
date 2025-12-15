@@ -1,0 +1,30 @@
+# Configuration files with sensitive data
+config.local.php
+
+# API keys and secrets
+*.key
+*.secret
+.env
+
+# Database files
+*.sql
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+error_log
+
+# Temporary files
+*.tmp
+*.temp
+
