@@ -71,13 +71,32 @@ A modern AI chat application with user authentication and support for multiple A
 
 ## Project Structure
 
-- `index.html` - Main chat interface
-- `login.html` / `register.html` - Authentication pages
-- `api.js` - Frontend API client
-- `spaceai.php` - AI chat API endpoint
-- `login.php` / `register.php` - Authentication endpoints
-- `db.php` - Database connection
-- `config.php` - Configuration file
+```
+spaceai/
+├── config.php              # Config (DB, Gemini API key) – keep at root
+├── config.local.php        # Optional local overrides (gitignored)
+├── public/                 # Document root
+│   ├── index.html          # Main chat
+│   ├── login.html
+│   ├── register.html
+│   ├── css/
+│   │   ├── auth.css
+│   │   ├── style.css
+│   │   └── style2.css
+│   ├── js/
+│   │   └── api.js
+│   ├── images/
+│   │   └── space.avif
+│   └── api/
+│       ├── login.php
+│       ├── register.php
+│       ├── spaceai.php
+│       ├── db.php
+│       └── list-models.php
+├── start-server.sh
+├── package.json
+└── README.md
+```
 
 ## API Integration
 

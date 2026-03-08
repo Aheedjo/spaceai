@@ -1,0 +1,303 @@
+/* SpaceAI Auth – space.avif background, clean card overlay */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Outfit', system-ui, sans-serif;
+    color: #e8eef7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #0a0a12;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Background image – rotated from portrait to landscape */
+body::after {
+    content: '';
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 100vh;
+    height: 100vw;
+    background: url('../images/space.avif') no-repeat center center;
+    background-size: cover;
+    transform: translate(-50%, -50%) rotate(90deg);
+    pointer-events: none;
+    z-index: -2;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(10, 12, 28, 0.85) 0%,
+        rgba(20, 15, 45, 0.75) 50%,
+        rgba(8, 10, 24, 0.9) 100%
+    );
+    pointer-events: none;
+    z-index: -1;
+}
+
+.auth-wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: 16px;
+}
+
+.auth-card {
+    position: relative;
+    background: linear-gradient(
+        145deg,
+        rgba(28, 34, 58, 0.72) 0%,
+        rgba(18, 22, 45, 0.68) 50%,
+        rgba(22, 28, 52, 0.7) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 40px 36px;
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* Glossy highlight strip */
+.auth-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.2) 20%,
+        rgba(255, 255, 255, 0.35) 50%,
+        rgba(255, 255, 255, 0.2) 80%,
+        transparent 100%
+    );
+    pointer-events: none;
+}
+
+.auth-card::after {
+    content: '';
+    position: absolute;
+    left: 10%;
+    top: 0;
+    width: 30%;
+    height: 40%;
+    background: radial-gradient(
+        ellipse at 50% 0%,
+        rgba(255, 255, 255, 0.08) 0%,
+        transparent 70%
+    );
+    pointer-events: none;
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.auth-logo h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, #a8c5e8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin: 0 0 6px;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #e8eef7;
+}
+
+.auth-subtitle {
+    text-align: center;
+    margin: 0 0 28px;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: rgba(232, 238, 247, 0.65);
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(232, 238, 247, 0.9);
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: #e8eef7;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form input::placeholder {
+    color: rgba(232, 238, 247, 0.4);
+}
+
+.auth-form input:focus {
+    border-color: rgba(100, 180, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.15);
+}
+
+.auth-actions {
+    margin-top: 28px;
+}
+
+.auth-actions button {
+    width: 100%;
+    padding: 14px 20px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #3b6cb8 0%, #5b8fd9 50%, #4a7bc9 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(59, 108, 184, 0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.auth-actions button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(59, 108, 184, 0.5);
+}
+
+.auth-actions button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.auth-actions button:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.9rem;
+    color: rgba(232, 238, 247, 0.7);
+}
+
+.auth-footer a {
+    color: #7eb8f0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.auth-footer a:hover {
+    color: #a8d4ff;
+}
+
+.auth-extra {
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 18px;
+}
+
+.auth-extra a {
+    font-size: 0.85rem;
+    color: rgba(126, 184, 240, 0.9);
+    text-decoration: none;
+}
+
+.auth-extra a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+    }
+
+    .auth-wrap {
+        padding: 12px;
+        max-width: 100%;
+    }
+
+    .auth-card {
+        padding: 28px 20px;
+        border-radius: 16px;
+    }
+
+    .auth-logo h1 {
+        font-size: 1.5rem;
+    }
+
+    .auth-card h2 {
+        font-size: 1.2rem;
+    }
+
+    .auth-subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 22px;
+    }
+
+    .auth-form input {
+        padding: 14px 16px;
+        min-height: 48px;
+        font-size: 16px; /* prevents zoom on focus in iOS */
+    }
+
+    .auth-actions button {
+        min-height: 48px;
+        padding: 14px 20px;
+    }
+
+    .auth-footer {
+        margin-top: 20px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .auth-card {
+        padding: 22px 16px;
+    }
+
+    .auth-logo h1 {
+        font-size: 1.35rem;
+    }
+}

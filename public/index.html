@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SpaceAI</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>SpaceAI</h2>
+    <button class="new-chat" onclick="newChat()">＋ New Chat</button>
+    <div class="chat-list">Future chats will appear here</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <header>
+        <span id="username"></span>
+        <button class="logout" onclick="logout()">Logout</button>
+    </header>
+
+    <div id="chatbox">
+        <div class="msg ai">
+            🌌 Hello! I'm <b>SpaceAI</b>. Ask me anything about the universe… or anything at all.
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input id="userInput" placeholder="Message SpaceAI…">
+        <button class="send" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+async function checkAuth() {
+    try {
+        const response = await fetch('api/spaceai.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ question: '' })
+        });
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            return false;
+        }
+        return true;
+    } catch (error) {
+        if (localStorage.getItem("spaceai_logged_in") !== "true") {
+            window.location.href = "login.html";
+            return false;
+        }
+        return true;
+    }
+}
+
+checkAuth().then(authenticated => {
+    if (authenticated) {
+        const username = localStorage.getItem("spaceai_user") || "User";
+        document.getElementById("username").innerText = "👋 " + username;
+    }
+});
+
+function logout() {
+    localStorage.removeItem("spaceai_logged_in");
+    localStorage.removeItem("spaceai_user");
+    window.location.href = "login.html";
+}
+
+function addMessage(text, type) {
+    const box = document.getElementById("chatbox");
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.innerHTML = text.replace(/\n/g, '<br>');
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) return;
+
+    const messageText = text;
+    addMessage(messageText, "user");
+    input.value = "";
+    input.disabled = true;
+
+    const typing = document.createElement("div");
+    typing.className = "msg ai typing";
+    typing.id = "typing-indicator";
+    typing.innerText = "SpaceAI is thinking...";
+    document.getElementById("chatbox").appendChild(typing);
+    document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight;
+
+    try {
+        const response = await SpaceAIAPI.sendMessage(messageText);
+        typing.remove();
+        if (response.success && response.answer) {
+            addMessage(response.answer, "ai");
+        } else {
+            addMessage("⚠️ " + (response.answer || "Failed to get response"), "ai");
+        }
+    } catch (error) {
+        typing.remove();
+        if (error.message.includes("log in")) {
+            addMessage("⚠️ Session expired. Please log in again.", "ai");
+            setTimeout(() => { window.location.href = "login.html"; }, 2000);
+        } else if (error.message.includes("API key")) {
+            addMessage("⚠️ API key not configured. Please contact administrator.", "ai");
+        } else {
+            addMessage("⚠️ Error: " + error.message, "ai");
+        }
+    } finally {
+        input.disabled = false;
+        input.focus();
+    }
+}
+
+document.getElementById("userInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+function newChat() {
+    if (confirm("Start a new chat? Current conversation will be cleared.")) {
+        document.getElementById("chatbox").innerHTML =
+            '<div class="msg ai">🌌 New chat started. Ask me anything!</div>';
+    }
+}
+</script>
+
+</body>
+</html>

@@ -75,12 +75,17 @@ The `config.local.php` file is already in `.gitignore` and won't be committed to
 
 ### 4. Run the Application
 
-**Using PHP Built-in Server:**
+**Using PHP Built-in Server (document root is `public/`):**
 ```bash
-php -S localhost:8000
+php -S localhost:3000 -t public
 ```
 
-Then open http://localhost:8000 in your browser.
+Or from project root:
+```bash
+./start-server.sh
+```
+
+Then open http://localhost:3000 in your browser.
 
 **Using Apache/Nginx:**
 - Point your web server document root to this directory

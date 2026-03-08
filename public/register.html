@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Account – SpaceAI</title>
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h1>SpaceAI</h1>
+        </div>
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Join SpaceAI to start chatting.</p>
+
+        <form class="auth-form" onsubmit="event.preventDefault(); register();">
+            <label for="regUser">Username</label>
+            <input id="regUser" type="text" placeholder="Choose a username (3+ characters)" autocomplete="username">
+
+            <label for="regPass">Password</label>
+            <input id="regPass" type="password" placeholder="Choose a password (6+ characters)" autocomplete="new-password">
+
+            <div class="auth-actions">
+                <button type="submit" id="regBtn" onclick="register()">Create Account</button>
+            </div>
+        </form>
+
+        <p class="auth-footer">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+async function register() {
+    const user = document.getElementById('regUser').value.trim();
+    const pass = document.getElementById('regPass').value.trim();
+
+    if (!user || !pass) {
+        alert('Please fill in all fields');
+        return;
+    }
+    if (user.length < 3) {
+        alert('Username must be at least 3 characters');
+        return;
+    }
+    if (pass.length < 6) {
+        alert('Password must be at least 6 characters');
+        return;
+    }
+
+    const btn = document.getElementById('regBtn');
+    btn.disabled = true;
+    btn.textContent = 'Creating account…';
+
+    try {
+        const response = await SpaceAIAPI.register(user, pass);
+        if (response.success) {
+            localStorage.setItem('spaceai_user', response.username || user);
+            localStorage.setItem('spaceai_logged_in', 'true');
+            alert('Account created successfully!');
+            window.location.href = 'index.html';
+        } else {
+            alert(response.message || 'Registration failed');
+        }
+    } catch (error) {
+        alert(error.message || 'Registration failed. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+    }
+}
+
+document.getElementById('regPass').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') register();
+});
+</script>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
  * Handles all backend API calls
  */
 
-const API_BASE = ''; // Relative path to PHP files
+const API_BASE = 'api'; // API folder under document root
 
 class SpaceAIAPI {
     /**
@@ -11,7 +11,7 @@ class SpaceAIAPI {
      */
     static async register(username, password) {
         try {
-            const response = await fetch('register.php', {
+            const response = await fetch(API_BASE + '/register.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -35,7 +35,7 @@ class SpaceAIAPI {
      */
     static async login(username, password) {
         try {
-            const response = await fetch('login.php', {
+            const response = await fetch(API_BASE + '/login.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -59,28 +59,24 @@ class SpaceAIAPI {
      */
     static async sendMessage(question) {
         try {
-            // Validate question
             if (!question || !question.trim()) {
                 throw new Error('Please enter a message');
             }
 
-            const response = await fetch('spaceai.php', {
+            const response = await fetch(API_BASE + '/spaceai.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include', // Include cookies for session
+                credentials: 'include',
                 body: JSON.stringify({ question: question.trim() })
             });
 
-            // Get response as text first to check if it's JSON
             const responseText = await response.text();
-            
             let data;
             try {
                 data = JSON.parse(responseText);
             } catch (parseError) {
-                // Response is not JSON - likely a PHP error
                 console.error('Non-JSON response:', responseText);
                 throw new Error('Server error: ' + (responseText.substring(0, 100) || 'Invalid response format'));
             }
@@ -95,16 +91,11 @@ class SpaceAIAPI {
         }
     }
 
-    /**
-     * Check if user is logged in
-     */
     static async checkAuth() {
         try {
-            // This would require a separate endpoint, for now we'll rely on session
             return true;
         } catch (error) {
             return false;
         }
     }
 }
-

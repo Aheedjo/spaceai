@@ -1,9 +1,8 @@
 <?php
 /**
- * List available Gemini models
- * Run this to see what models are available with your API key
+ * List available Gemini models (run from CLI: php public/api/list-models.php)
  */
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../../config.php';
 
 $api_key = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '';
 
@@ -55,4 +54,3 @@ if(isset($data['models'])){
     print_r($data);
 }
 ?>
-

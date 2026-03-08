@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login – SpaceAI</title>
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h1>SpaceAI</h1>
+        </div>
+        <h2>Agent Login</h2>
+        <p class="auth-subtitle">Please enter your details.</p>
+
+        <form class="auth-form" onsubmit="event.preventDefault(); login();">
+            <label for="loginUser">Username</label>
+            <input id="loginUser" type="text" placeholder="Enter your username" autocomplete="username">
+
+            <label for="loginPass">Password</label>
+            <input id="loginPass" type="password" placeholder="Enter your password" autocomplete="current-password">
+
+            <div class="auth-actions">
+                <button type="submit" id="loginBtn" onclick="login()">Sign in</button>
+            </div>
+        </form>
+
+        <p class="auth-footer">Are you new? <a href="register.html">Create an Account</a></p>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+async function login() {
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+
+    if (!user || !pass) {
+        alert('Please enter both username and password');
+        return;
+    }
+
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+
+    try {
+        const response = await SpaceAIAPI.login(user, pass);
+        if (response.success) {
+            localStorage.setItem('spaceai_user', response.username || user);
+            localStorage.setItem('spaceai_logged_in', 'true');
+            window.location.href = 'index.html';
+        } else {
+            alert(response.message || 'Login failed');
+        }
+    } catch (error) {
+        alert(error.message || 'Login failed. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+    }
+}
+
+document.getElementById('loginPass').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') login();
+});
+</script>
+
+</body>
+</html>

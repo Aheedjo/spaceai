@@ -27,11 +27,11 @@ echo "Checking PHP extensions..."
 php -m | grep -q pdo_mysql && echo "✅ PDO MySQL extension found" || echo "⚠️  PDO MySQL extension not found"
 php -m | grep -q curl && echo "✅ cURL extension found" || echo "⚠️  cURL extension not found"
 
-# Start PHP server
+# Start PHP server (public/ is document root)
 echo ""
 echo "🌐 Starting server on http://localhost:3000"
 echo "Press Ctrl+C to stop"
 echo ""
 
-php -S localhost:3000
+php -S localhost:3000 -t public
 
