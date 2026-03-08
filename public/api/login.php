@@ -8,6 +8,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Cache-Control: no-store');
 
 session_start();
 
@@ -21,22 +22,25 @@ if(empty($username) || empty($password)){
     exit();
 }
 
+// Normalize to lowercase so ADM and adm match the same account
+$usernameNormalized = mb_strtolower($username, 'UTF-8');
+
 if(!$db_available || !$conn){
-    $_SESSION['user_id'] = 1;
-    $_SESSION['username'] = $username;
-    echo json_encode(["success" => true, "message" => "Login successful (demo mode - no database)", "username" => $username]);
+    http_response_code(503);
+    echo json_encode(["success" => false, "message" => "Database unavailable. Please try again later."]);
     exit();
 }
 
 try {
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username=?");
-    $stmt->execute([$username]);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE LOWER(username)=?");
+    $stmt->execute([$usernameNormalized]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if($user && password_verify($password, $user['password'])){
         $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        echo json_encode(["success" => true, "message" => "Login successful", "username" => $user['username']]);
+        $displayName = mb_strtolower($user['username'], 'UTF-8');
+        $_SESSION['username'] = $displayName;
+        echo json_encode(["success" => true, "message" => "Login successful", "username" => $displayName]);
     } else {
         http_response_code(401);
         echo json_encode(["success" => false, "message" => "Invalid username or password"]);

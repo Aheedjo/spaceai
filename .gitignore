@@ -9,6 +9,11 @@ config.local.php
 # Database files
 *.sql
 *.db
+*.sqlite
+*.sqlite3
+# SQLite DB lives here when hosting – keep folder, ignore contents
+/data/*.sqlite
+/data/*.sqlite3
 
 # OS files
 .DS_Store

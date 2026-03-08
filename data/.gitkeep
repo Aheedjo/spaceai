@@ -1,0 +1,3 @@
+# This folder holds the SQLite database (data/spaceai.sqlite) when the app runs.
+# Keep this directory in git; the .sqlite file is gitignored.
+# When hosting, ensure the web server can write here (e.g. chmod 755 or 775).

@@ -13,17 +13,18 @@ A modern AI chat application with user authentication and support for multiple A
 ## Quick Start
 
 ### Prerequisites
-- PHP 7.4+ with PDO, cURL extensions
-- MySQL/MariaDB database
+- PHP 7.4+ with PDO, cURL, and SQLite extensions
 - Google Gemini API key (Get one free at https://makersuite.google.com/app/apikey)
 
 ### Setup
 
-1. **Database Setup**
-   ```sql
-   CREATE DATABASE spaceai;
-   USE spaceai;
-   -- Import spaceai.sql or run the SQL commands from SETUP.md
+1. **Database (SQLite – default)**  
+   No setup needed. The app uses a SQLite file at **`data/spaceai.sqlite`** (created automatically on first run).  
+   **When hosting:** ensure the `data/` directory is **writable** by the web server, e.g.:
+   ```bash
+   chmod 755 data
+   # or, if the web server runs as a different user:
+   chown www-data:www-data data   # Linux, adjust user/group to your server
    ```
 
 2. **Configuration**
@@ -69,12 +70,20 @@ A modern AI chat application with user authentication and support for multiple A
    - Point document root to this directory
    - Access via your configured domain
 
+## Where is the database stored?
+
+- **SQLite (default):** `data/spaceai.sqlite` in the project root.  
+  Users and chat messages are stored here. When you deploy, keep `data/` writable by PHP (see Setup above).
+- **MySQL:** Optional; set `USE_SQLITE` to `false` in `config.php` and set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
+
 ## Project Structure
 
 ```
 spaceai/
 ├── config.php              # Config (DB, Gemini API key) – keep at root
 ├── config.local.php        # Optional local overrides (gitignored)
+├── data/                   # SQLite DB stored here (must be writable when hosting)
+│   └── spaceai.sqlite      # Created at first run; gitignored
 ├── public/                 # Document root
 │   ├── index.html          # Main chat
 │   ├── login.html

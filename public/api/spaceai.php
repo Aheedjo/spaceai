@@ -36,6 +36,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 }
 
 $question = trim($input['question'] ?? "");
+$conversation_id = isset($input['conversation_id']) ? (int) $input['conversation_id'] : null;
 
 if(empty($question)){
     http_response_code(400);
@@ -77,11 +78,31 @@ if($error || empty($answer)){
     exit();
 }
 
+$conversation_id_to_return = $conversation_id;
+$conversation_title_updated = null;
 if($db_available && $conn){
     try {
-        $stmt = $conn->prepare("INSERT INTO messages (user_id, role, message) VALUES (?,?,?)");
-        $stmt->execute([$user_id, "user", $question]);
-        $stmt->execute([$user_id, "ai", $answer]);
+        if ($conversation_id <= 0) {
+            $stmt = $conn->prepare("INSERT INTO conversations (user_id, title) VALUES (?, 'New chat')");
+            $stmt->execute([$user_id]);
+            $conversation_id_to_return = (int) $conn->lastInsertId();
+            $conversation_id = $conversation_id_to_return;
+        }
+        if ($conversation_id > 0) {
+            $stmt = $conn->prepare("INSERT INTO messages (user_id, conversation_id, role, message) VALUES (?,?,?,?)");
+            $stmt->execute([$user_id, $conversation_id, "user", $question]);
+            $stmt->execute([$user_id, $conversation_id, "ai", $answer]);
+            $stmt = $conn->prepare("SELECT title FROM conversations WHERE id = ? AND user_id = ?");
+            $stmt->execute([$conversation_id, $user_id]);
+            $conv = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($conv && $conv['title'] === 'New chat') {
+                $title = mb_substr(trim($question), 0, 50, 'UTF-8');
+                if ($title === '') $title = 'New chat';
+                $stmt = $conn->prepare("UPDATE conversations SET title = ? WHERE id = ? AND user_id = ?");
+                $stmt->execute([$title, $conversation_id, $user_id]);
+                $conversation_title_updated = $title;
+            }
+        }
     } catch(PDOException $e){
         error_log("Database error saving message: " . $e->getMessage());
     }
@@ -89,9 +110,17 @@ if($db_available && $conn){
     error_log("Chat message not saved - database unavailable");
 }
 
-echo json_encode(["success" => true, "answer" => $answer]);
+$out = ["success" => true, "answer" => $answer, "conversation_id" => $conversation_id_to_return];
+if ($conversation_title_updated !== null) {
+    $out["conversation_title"] = $conversation_title_updated;
+}
+echo json_encode($out);
 
 function callGeminiAPI($api_key, $question, $model = 'models/gemini-2.5-flash'){
+    $system_instruction = defined('GEMINI_SYSTEM_INSTRUCTION') && GEMINI_SYSTEM_INSTRUCTION !== ''
+        ? GEMINI_SYSTEM_INSTRUCTION
+        : null;
+
     $data = [
         "contents" => [[
             "parts" => [["text" => $question]]
@@ -101,6 +130,11 @@ function callGeminiAPI($api_key, $question, $model = 'models/gemini-2.5-flash'){
             "maxOutputTokens" => 2048
         ]
     ];
+    if ($system_instruction !== null) {
+        $data["systemInstruction"] = [
+            "parts" => [["text" => $system_instruction]]
+        ];
+    }
 
     $model_name = str_replace('models/', '', $model);
     $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model_name}:generateContent?key=" . urlencode($api_key);

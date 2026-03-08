@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Create Account – SpaceAI</title>
     <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/notifications.css">
 </head>
 <body>
 
@@ -32,22 +33,25 @@
     </div>
 </div>
 
+<script src="js/notifications.js"></script>
 <script src="js/api.js"></script>
 <script>
+SpaceAIAPI.authCheck().then(auth => { if (auth.logged_in) window.location.href = 'index.html'; });
+
 async function register() {
     const user = document.getElementById('regUser').value.trim();
     const pass = document.getElementById('regPass').value.trim();
 
     if (!user || !pass) {
-        alert('Please fill in all fields');
+        notify.error('Please fill in all fields');
         return;
     }
     if (user.length < 3) {
-        alert('Username must be at least 3 characters');
+        notify.error('Username must be at least 3 characters');
         return;
     }
     if (pass.length < 6) {
-        alert('Password must be at least 6 characters');
+        notify.error('Password must be at least 6 characters');
         return;
     }
 
@@ -60,13 +64,13 @@ async function register() {
         if (response.success) {
             localStorage.setItem('spaceai_user', response.username || user);
             localStorage.setItem('spaceai_logged_in', 'true');
-            alert('Account created successfully!');
+            notify.success('Account created successfully!');
             window.location.href = 'index.html';
         } else {
-            alert(response.message || 'Registration failed');
+            notify.error(response.message || 'Registration failed');
         }
     } catch (error) {
-        alert(error.message || 'Registration failed. Please try again.');
+        notify.error(error.message || 'Registration failed. Please try again.');
     } finally {
         btn.disabled = false;
         btn.textContent = 'Create Account';

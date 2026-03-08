@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SpaceAI</title>
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/notifications.css">
 </head>
 <body>
 
@@ -12,7 +13,7 @@
 <div class="sidebar">
     <h2>SpaceAI</h2>
     <button class="new-chat" onclick="newChat()">＋ New Chat</button>
-    <div class="chat-list">Future chats will appear here</div>
+    <div id="chat-list" class="chat-list"></div>
 </div>
 
 <!-- MAIN -->
@@ -34,38 +35,95 @@
     </div>
 </div>
 
+<script src="js/notifications.js?v=2"></script>
 <script src="js/api.js"></script>
 <script>
-async function checkAuth() {
-    try {
-        const response = await fetch('api/spaceai.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ question: '' })
-        });
-        if (response.status === 401) {
-            window.location.href = "login.html";
-            return false;
+var currentConversationId = null;
+var conversations = [];
+
+async function initApp() {
+    const auth = await SpaceAIAPI.authCheck();
+    if (!auth.logged_in) {
+        window.location.href = "login.html";
+        return;
+    }
+    document.getElementById("username").innerText = "Signed in as " + (auth.username || "User");
+    localStorage.setItem("spaceai_user", auth.username || "");
+    localStorage.setItem("spaceai_logged_in", "true");
+
+    const listRes = await SpaceAIAPI.getConversations();
+    conversations = listRes.conversations || [];
+    renderChatList();
+
+    if (conversations.length === 0) {
+        try {
+            const conv = await SpaceAIAPI.createConversation();
+            if (conv) {
+                currentConversationId = conv.id;
+                conversations.unshift(conv);
+                renderChatList();
+            }
+        } catch (e) {
+            console.error("Create initial conversation:", e);
         }
-        return true;
-    } catch (error) {
-        if (localStorage.getItem("spaceai_logged_in") !== "true") {
-            window.location.href = "login.html";
-            return false;
-        }
-        return true;
+    } else {
+        currentConversationId = conversations[0].id;
+    }
+
+    const chatbox = document.getElementById("chatbox");
+    const { messages } = await SpaceAIAPI.getChats(currentConversationId);
+    if (messages && messages.length > 0) {
+        chatbox.innerHTML = "";
+        messages.forEach(m => addMessage(m.message, m.role));
     }
 }
 
-checkAuth().then(authenticated => {
-    if (authenticated) {
-        const username = localStorage.getItem("spaceai_user") || "User";
-        document.getElementById("username").innerText = "👋 " + username;
+function renderChatList() {
+    var el = document.getElementById("chat-list");
+    if (!conversations.length) {
+        el.innerHTML = "<span class=\"chat-list-empty\">Your chats will appear here</span>";
+        return;
     }
-});
+    el.innerHTML = conversations.map(function(c) {
+        var title = (c.title || "New chat").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        var active = c.id === currentConversationId ? " active" : "";
+        return "<div class=\"chat-list-item" + active + "\" data-id=\"" + c.id + "\">" +
+            "<span class=\"chat-list-item-title\">" + title + "</span>" +
+            "<button type=\"button\" class=\"chat-list-item-delete\" data-id=\"" + c.id + "\" title=\"Delete chat\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/><line x1=\"10\" y1=\"11\" x2=\"10\" y2=\"17\"/><line x1=\"14\" y1=\"11\" x2=\"14\" y2=\"17\"/></svg></button>" +
+            "</div>";
+    }).join("");
+    el.querySelectorAll(".chat-list-item").forEach(function(row) {
+        var id = parseInt(row.getAttribute("data-id"), 10);
+        row.addEventListener("click", function(e) {
+            if (!e.target.classList.contains("chat-list-item-delete")) switchConversation(id);
+        });
+        row.querySelector(".chat-list-item-delete").addEventListener("click", function(e) {
+            e.stopPropagation();
+            deleteChat(id);
+        });
+    });
+}
 
-function logout() {
+function switchConversation(id) {
+    if (id === currentConversationId) return;
+    currentConversationId = id;
+    renderChatList();
+    var chatbox = document.getElementById("chatbox");
+    chatbox.innerHTML = "<div class=\"msg ai\">🌌 Loading…</div>";
+    SpaceAIAPI.getChats(id).then(function(r) {
+        chatbox.innerHTML = "";
+        if (r.messages && r.messages.length > 0) {
+            r.messages.forEach(function(m) { addMessage(m.message, m.role); });
+        } else {
+            chatbox.innerHTML = "<div class=\"msg ai\">🌌 Hello! I'm <b>SpaceAI</b>. Ask me anything about the universe… or anything at all.</div>";
+        }
+    });
+}
+
+initApp();
+
+async function logout() {
+    await SpaceAIAPI.logout();
     localStorage.removeItem("spaceai_logged_in");
     localStorage.removeItem("spaceai_user");
     window.location.href = "login.html";
@@ -86,6 +144,17 @@ async function sendMessage() {
     if (!text) return;
 
     const messageText = text;
+    var convIdBeforeSend = currentConversationId;
+    var titleText = messageText.length > 50 ? messageText.slice(0, 47) + "..." : messageText;
+    var conv = conversations.find(function(c) { return c.id === convIdBeforeSend; });
+    if (conv && (conv.title || "New chat") === "New chat") {
+        conv.title = titleText;
+        var row = document.querySelector(".chat-list-item[data-id=\"" + convIdBeforeSend + "\"]");
+        var titleEl = row && row.querySelector(".chat-list-item-title");
+        if (titleEl) titleEl.textContent = titleText;
+        else renderChatList();
+    }
+
     addMessage(messageText, "user");
     input.value = "";
     input.disabled = true;
@@ -98,8 +167,18 @@ async function sendMessage() {
     document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight;
 
     try {
-        const response = await SpaceAIAPI.sendMessage(messageText);
+        const response = await SpaceAIAPI.sendMessage(messageText, currentConversationId);
         typing.remove();
+        if (response.conversation_id && !currentConversationId) {
+            currentConversationId = response.conversation_id;
+            var listRes = await SpaceAIAPI.getConversations();
+            conversations = listRes.conversations || [];
+            renderChatList();
+        }
+        if (response.conversation_title) {
+            var conv = conversations.find(function(c) { return c.id === (response.conversation_id || currentConversationId); });
+            if (conv) { conv.title = response.conversation_title; renderChatList(); }
+        }
         if (response.success && response.answer) {
             addMessage(response.answer, "ai");
         } else {
@@ -108,11 +187,14 @@ async function sendMessage() {
     } catch (error) {
         typing.remove();
         if (error.message.includes("log in")) {
+            notify.error("Session expired. Please log in again.");
             addMessage("⚠️ Session expired. Please log in again.", "ai");
             setTimeout(() => { window.location.href = "login.html"; }, 2000);
         } else if (error.message.includes("API key")) {
+            notify.error("API key not configured.");
             addMessage("⚠️ API key not configured. Please contact administrator.", "ai");
         } else {
+            notify.error(error.message);
             addMessage("⚠️ Error: " + error.message, "ai");
         }
     } finally {
@@ -128,10 +210,43 @@ document.getElementById("userInput").addEventListener("keypress", function(e) {
     }
 });
 
-function newChat() {
-    if (confirm("Start a new chat? Current conversation will be cleared.")) {
+async function newChat() {
+    try {
+        var conv = await SpaceAIAPI.createConversation();
+        currentConversationId = conv.id;
+        conversations = [conv].concat(conversations);
+        renderChatList();
         document.getElementById("chatbox").innerHTML =
-            '<div class="msg ai">🌌 New chat started. Ask me anything!</div>';
+            '<div class="msg ai">🌌 Hello! I\'m <b>SpaceAI</b>. Ask me anything about the universe… or anything at all.</div>';
+        document.getElementById("userInput").focus();
+    } catch (err) {
+        notify.error(err.message || "Could not create new chat");
+    }
+}
+
+async function deleteChat(id) {
+    try {
+        await SpaceAIAPI.deleteConversation(id);
+        conversations = conversations.filter(function(c) { return c.id !== id; });
+        if (currentConversationId === id) {
+            currentConversationId = conversations.length ? conversations[0].id : null;
+            var chatbox = document.getElementById("chatbox");
+            if (currentConversationId) {
+                chatbox.innerHTML = "<div class=\"msg ai\">🌌 Loading…</div>";
+                var r = await SpaceAIAPI.getChats(currentConversationId);
+                chatbox.innerHTML = "";
+                if (r.messages && r.messages.length > 0) {
+                    r.messages.forEach(function(m) { addMessage(m.message, m.role); });
+                } else {
+                    chatbox.innerHTML = "<div class=\"msg ai\">🌌 Hello! I'm <b>SpaceAI</b>. Ask me anything about the universe… or anything at all.</div>";
+                }
+            } else {
+                chatbox.innerHTML = "<div class=\"msg ai\">🌌 Hello! I'm <b>SpaceAI</b>. Ask me anything about the universe… or anything at all.</div>";
+            }
+        }
+        renderChatList();
+    } catch (err) {
+        notify.error(err.message || "Could not delete chat");
     }
 }
 </script>
