@@ -1,9 +1,14 @@
 <?php
 /**
  * Configuration file for SpaceAI
- * IMPORTANT: Create a config.local.php file with your actual credentials
- * and add it to .gitignore
+ * IMPORTANT: Put your API key and secrets in config.local.php (copy from config.local.php.example).
+ * config.local.php is in .gitignore and must never be committed.
  */
+
+// Load local config first so it can define secrets (API key, etc.)
+if (file_exists(__DIR__ . '/config.local.php')) {
+    require_once __DIR__ . '/config.local.php';
+}
 
 // Database: use SQLite (no MySQL needed) or set USE_SQLITE to false for MySQL
 // SQLite file is stored in project root / data/ – when hosting, ensure this folder is writable by the web server
@@ -16,10 +21,10 @@ define('DB_NAME', 'spaceai');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
-// Google Gemini API Configuration
-// Set your Gemini API key here or in config.local.php
-// Get your API key from: https://makersuite.google.com/app/apikey
-define('GEMINI_API_KEY', 'AIzaSyDgBQxTu7mXDOYYgYg8K5WNC9yJS8DOXAc');
+// Google Gemini API Configuration (override in config.local.php – never commit the real key)
+if (!defined('GEMINI_API_KEY')) {
+    define('GEMINI_API_KEY', 'AIzaSyDgBQxTu7mXDOYYgYg8K5WNC9yJS8DOXAc');
+}
 
 // Gemini Model Selection
 // Run list-models.php to see available models for your API key
