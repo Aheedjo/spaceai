@@ -117,15 +117,12 @@ body::before {
     margin-bottom: 8px;
 }
 
-.auth-logo h1 {
-    margin: 0;
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #fff 0%, #a8c5e8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+.auth-logo-img {
+    display: block;
+    height: 48px;
+    width: auto;
+    margin: 0 auto;
+    object-fit: contain;
 }
 
 .auth-card h2 {
@@ -262,8 +259,8 @@ body::before {
         border-radius: 16px;
     }
 
-    .auth-logo h1 {
-        font-size: 1.5rem;
+    .auth-logo-img {
+        height: 42px;
     }
 
     .auth-card h2 {
@@ -297,7 +294,7 @@ body::before {
         padding: 22px 16px;
     }
 
-    .auth-logo h1 {
-        font-size: 1.35rem;
+    .auth-logo-img {
+        height: 38px;
     }
 }

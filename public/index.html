@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SpaceAI</title>
+    <link rel="icon" href="images/logo.png" type="image/png">
     <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="css/notifications.css">
 </head>
 <body>
 
 <!-- SIDEBAR -->
-<div class="sidebar">
-    <h2>SpaceAI</h2>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()" aria-hidden="true"></div>
+<div class="sidebar" id="sidebar">
+    <img src="images/logo.png" alt="SpaceAI" class="sidebar-logo">
     <button class="new-chat" onclick="newChat()">＋ New Chat</button>
     <div id="chat-list" class="chat-list"></div>
 </div>
@@ -19,6 +21,7 @@
 <!-- MAIN -->
 <div class="main">
     <header>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Chats" aria-label="Open chats"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
         <span id="username"></span>
         <button class="logout" onclick="logout()">Logout</button>
     </header>
@@ -107,6 +110,7 @@ function renderChatList() {
 function switchConversation(id) {
     if (id === currentConversationId) return;
     currentConversationId = id;
+    closeSidebar();
     renderChatList();
     var chatbox = document.getElementById("chatbox");
     chatbox.innerHTML = "<div class=\"msg ai\">🌌 Loading…</div>";
@@ -219,9 +223,22 @@ async function newChat() {
         document.getElementById("chatbox").innerHTML =
             '<div class="msg ai">🌌 Hello! I\'m <b>SpaceAI</b>. Ask me anything about the universe… or anything at all.</div>';
         document.getElementById("userInput").focus();
+        closeSidebar();
     } catch (err) {
         notify.error(err.message || "Could not create new chat");
     }
+}
+
+function toggleSidebar() {
+    document.body.classList.toggle("sidebar-open");
+    var back = document.getElementById("sidebarBackdrop");
+    if (back) back.setAttribute("aria-hidden", document.body.classList.contains("sidebar-open") ? "false" : "true");
+}
+
+function closeSidebar() {
+    document.body.classList.remove("sidebar-open");
+    var back = document.getElementById("sidebarBackdrop");
+    if (back) back.setAttribute("aria-hidden", "true");
 }
 
 async function deleteChat(id) {
@@ -245,6 +262,7 @@ async function deleteChat(id) {
             }
         }
         renderChatList();
+        closeSidebar();
     } catch (err) {
         notify.error(err.message || "Could not delete chat");
     }
