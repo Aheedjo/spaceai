@@ -225,12 +225,21 @@ body.sidebar-open .sidebar-backdrop {
     background: rgba(255, 107, 107, 0.25);
 }
 
-/* CHAT */
+/* CHAT – background image with dark overlay so sides stay glossy */
 #chatbox {
     flex: 1;
     padding: 24px 32px;
     overflow-y: auto;
-    background: transparent;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(10, 12, 28, 0.82) 0%,
+            rgba(10, 14, 32, 0.88) 50%,
+            rgba(8, 10, 24, 0.9) 100%
+        ),
+        url('https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=1920&q=80') no-repeat center center;
+    background-size: cover;
+    background-attachment: local;
 }
 
 .msg {
